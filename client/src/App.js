@@ -1,5 +1,6 @@
 import './App.css';
 import {useEffect, useState} from 'react'
+import Map from './Components/Map.js';
 
 function App() {
 
@@ -14,8 +15,8 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <p>{test}</p>
+    <div>
+      <Map/>
     </div>
   );
 }
