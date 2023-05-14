@@ -1,5 +1,6 @@
 import './App.css';
 import {useEffect, useState} from 'react'
+import Sidebar from './components/sidebar'
 
 function App() {
 
@@ -16,7 +17,7 @@ function App() {
 
   return (
     <div className="App">
-      <p>{test}</p>
+      <Sidebar />
     </div>
   );
 }
