@@ -1,5 +1,6 @@
 import './App.css';
 import {useEffect, useState} from 'react'
+import Sidebar from './components/sidebar'
 
 function App() {
 
@@ -9,13 +10,14 @@ function App() {
     fetch("http://localhost:5000/api")
     .then( response => response.json() )
     .then( data => {
+      console.log("start")
       setTest(data)
     })
   }, []);
 
   return (
     <div className="App">
-      <p>{test}</p>
+      <Sidebar />
     </div>
   );
 }
