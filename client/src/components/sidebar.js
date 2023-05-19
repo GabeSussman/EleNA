@@ -71,10 +71,13 @@ class Sidebar extends React.Component {
             <option value="minimize">Minimize Elevation</option>
           </select>
         </div>
+        <button className="submit-button">Submit</button>
 
         <button className="location-button" onClick={this.getCurrentLocation}>
           <FontAwesomeIcon icon={faCrosshairs} />
         </button>
+
+        
       </div>
     );
   }
