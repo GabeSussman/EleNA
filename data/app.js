@@ -4,49 +4,20 @@ const uri = "mongodb+srv://user:ytnsGNoez@cluster0.v7lea8f.mongodb.net/?retryWri
 const overURL = 'https://overpass-api.de/api/interpreter?'
 const elevURL = 'https://api.opentopodata.org/v1/ned10m?'
 
-;(async () => {
-    // connect to mongo
-    const client = new MongoClient(uri)
-    await client.connect()
-    // connect to geo db
-    let db = client.db('geo')
-    // connect to geoNon and geoElev collections
-    let coll = db.collection('geoNon');
-    let collElev = db.collection('geoElev')
-    let collNear = db.collection('geoNear')
-    let collAll = db.collection('geoAll')
+// ;(async () => {
+//     // connect to mongo
+//     const client = new MongoClient(uri)
+//     await client.connect()
+//     // connect to geo db
+//     let db = client.db('geo')
+//     // connect to collection
+//     let collGeo = db.collection('geo')
+//     var result = await collGeo.insertMany(await getAll())
 
-    
+//     await client.close();
 
-    // insert all nodes to geoNon
-        // var result = await coll.insertMany(await getNodes())
-    // get all nodes in geoNon
-        // let result = await coll.find().toArray()
-
-    // get and insert nearest data to geoNear
-        // let near = nearest(result)
-        // let resNear = await collNear.insertMany(near)
-        // console.log(resNear)
-
-    // get and insert elevation data to geoElev
-        // var elev = await getElev(result)
-        // var resElev = await collElev.insertMany(elev)
-        // console.log(resElev)
-
-    // get all nodes in geoElev
-        // var resElev = await collElev.find().toArray()
-
-    // combine databases
-        // var elev = await collElev.find().toArray()
-        // var nodes = await collNear.find().toArray()
-        // var result = await collAll.insertMany(await combine(nodes, elev))
-        // console.log(result)
-
-    // close connection to mongo
-    await client.close();
-
-    console.log('Finsihed')
-})()
+//     console.log('Finsihed')
+// })()
 
 // returns distance in meters between a two sets of latitude and longitude
 function coordDist(lat1, lat2, lon1, lon2){
@@ -161,7 +132,7 @@ function nearest(nodes){
         // arr = arr.concat([{id: nodes[node1].id, lat: nodes[node1].lat, lon: nodes[node1].lon, 
         //     n: nNode['id'], e: eNode['id'], s: sNode['id'], w: wNode['id'],
         //     ne: neNode['id'], se: seNode['id'], sw: swNode['id'], nw: nwNode['id']}])
-        arr = arr.concat([{id: nodes[node1].id, lat: nodes[node1].lat, lon: nodes[node1].lon,
+        arr = arr.concat([{id: nodes[node1].id, lat: nodes[node1].lat, lon: nodes[node1].lon, elev: nodes[node1].elev,
             near: [nNode['id'], eNode['id'], sNode['id'], wNode['id'],
                     neNode['id'], seNode['id'], swNode['id'], nwNode['id']]}])
     }
@@ -240,10 +211,9 @@ async function getElev(nodes){
         b = b.concat(nodes[n].lat).concat(',').concat(nodes[n].lon).concat('|')
         if(n != 0){
             if(n % 99 == 0 || n == nodes.length){
-                console.log(n)
+                //console.log(n)
                 url = elevURL.concat(b)
                 b = 'locations='
-                //if(n == 99){
                     // get elevation data for b nodes
                     let elev = await getElevHelp(url)
                     //console.log(elev)
@@ -260,7 +230,6 @@ async function getElev(nodes){
                     }
                     // wait 1s per elev api requirements
                     await wait()
-                //}
             }
         }
     }
@@ -274,4 +243,12 @@ async function combine(nodes, elev){
         arr = arr.concat([{id: nodes[n].id, lat: nodes[n].lat, lon: nodes[n].lon, near: nodes[n].near, elev: elev[n].elev}])
     }
     return arr
+}
+
+// get all data 
+async function getAll(){
+    let nodes = await getNodes()
+    let elev = await getElev(nodes)
+    let near = nearest(elev)
+    return near
 }
