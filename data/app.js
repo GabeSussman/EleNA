@@ -14,6 +14,9 @@ const elevURL = 'https://api.opentopodata.org/v1/ned10m?'
     let coll = db.collection('geoNon');
     let collElev = db.collection('geoElev')
     let collNear = db.collection('geoNear')
+    let collAll = db.collection('geoAll')
+
+    
 
     // insert all nodes to geoNon
         // var result = await coll.insertMany(await getNodes())
@@ -32,6 +35,12 @@ const elevURL = 'https://api.opentopodata.org/v1/ned10m?'
 
     // get all nodes in geoElev
         // var resElev = await collElev.find().toArray()
+
+    // combine databases
+        // var elev = await collElev.find().toArray()
+        // var nodes = await collNear.find().toArray()
+        // var result = await collAll.insertMany(await combine(nodes, elev))
+        // console.log(result)
 
     // close connection to mongo
     await client.close();
@@ -254,6 +263,15 @@ async function getElev(nodes){
                 //}
             }
         }
+    }
+    return arr
+}
+
+// combines all data
+async function combine(nodes, elev){
+    let arr = []
+    for(n in elev){
+        arr = arr.concat([{id: nodes[n].id, lat: nodes[n].lat, lon: nodes[n].lon, near: nodes[n].near, elev: elev[n].elev}])
     }
     return arr
 }

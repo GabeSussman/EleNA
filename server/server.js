@@ -14,25 +14,104 @@ app.get("/api", (req, res) => {
     const client = new MongoClient(uri)
     client.connect
     let db = client.db('geo')
-    let coll = db.collection('geoNear')
-    let geoNear = await coll.find().toArray()
+    let collAll = db.collection('geoAll')
+    let geoAll = await collAll.find().toArray()
     client.close
 
     // convert nearest nodes to dictionary
-    let dict = nodesToDict(geoNear)
+    let dictAll = nodesToDict(geoAll)
 
     // run aStar and trace path
     let start = dict[61795906]
-    let end = dict[6357577436]
-    let close = aStar(dict, start, end)
+    let end = dict[2264382646]
+    //let end = dict[6357577436]
+    let close = aStar(dictAll, start, end)
     let tracer = trace(close)
     //console.log(tracer)
+
+    // run aStarElev and trace path
+    let dist = tracer[0].dist
+    //console.log(dist)
+    let closeElev = aStarElev(dictAll, start, end, 'min', dist*1.5)
+    //console.log(closeElev)
+    let tracerElev = trace(closeElev)
+    //console.log(tracerElev)
+
+    var e = 0
+    for(let i = 1; i < tracer.length - 2; i++){
+        ev = Math.abs(tracer[i].node.elev - tracer[i+1].node.elev)
+        //console.log(ev)
+        e += ev
+    }
+    console.log(e)
+
+    var e = 0
+    for(i in tracerElev){
+        //console.log(tracerElev[i].eChan)
+        if(tracerElev[i].eChan != undefined){
+            e += tracerElev[i].eChan
+        }
+    }
+    console.log(e)
 
     console.log('finished');
 })()
 
 
 app.listen(5000, () => {console.log("Server started on port 5000")})
+
+function aStarElev(nodes, start, end, m, maxDist){
+    // m either 'max' or 'min'
+    // init open and close list
+    let open = new Queue()
+    let close = []
+    // push start to open
+    open.enq(start, coordDist(start.lat, end.lat, start.lon, end.lon), undefined, start.elev, 0)
+    // while open ! empty
+    let done = false
+    while(!open.isEmpty() && !done){
+        // n = pop open node with smallest f
+        let n = open.deqEle(m)
+        // generate successors
+        succ = n.node.near
+        // compute dist estimate for each successor
+        for(let node in succ){
+            if(succ[node] != -1){
+                // check if end node
+                if(nodes[succ[node]].lat == end.lat && nodes[succ[node]].lon == end.lon){
+                    done = true
+                    close = close.concat([n, {node: nodes[succ[node]], dist: n.dist, par: n.node}])
+                    break
+                }
+                // dist computation
+                dist = n.dist + coordDist(n.node.lat, nodes[succ[node]].lat, n.node.lon, nodes[succ[node]].lon) - coordDist(n.node.lat, end.lat, n.node.lon, end.lon)
+                dist += coordDist(nodes[succ[node]].lat, end.lat, nodes[succ[node]].lon, end.lon)
+                // if succ in open or close with lower dist skip
+                // check dist within maxDist
+                // calculate elevation change 
+                let el = nodes[succ[node]].elev
+                let ec = Math.abs(el - n.elev)
+                if(!open.change(succ[node], ec, m) && dist < maxDist){
+                    // if not in close
+                    let t = false
+                    for(let i = 0; i < close.length; i++){
+                        if(succ[node] == close[i].node.id){
+                            t = true
+                        }
+                    }
+                    if(!t){
+                        // add to queue
+                        open.enq(nodes[succ[node]], dist, n.node, el, ec)
+                    }
+                }
+            }
+        }
+        // push n to closed
+        if(!done){ close = close.concat([n]) }
+    }
+    // return closed as path
+    return close
+}
 
 function trace(close){
     // loop through close(aStar return) following parent nodes to create path from start to end
@@ -232,7 +311,8 @@ function nodesToDict(nodes){
             id: nodes[node].id,
             lat: nodes[node].lat,
             lon: nodes[node].lon,
-            near: nodes[node].near
+            near: nodes[node].near,
+            elev: nodes[node].elev
         }
     }
     return dict;
