@@ -1,7 +1,8 @@
 const express = require('express')
 const app = express()
 const Queue = require('./Queue')
-const overURL = 'https://overpass-api.de/api/interpreter?'
+const {MongoClient} = require('mongodb');
+const uri = "mongodb+srv://user:ytnsGNoez@cluster0.v7lea8f.mongodb.net/?retryWrites=true&w=majority"
 
 app.get("/api", (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -9,63 +10,27 @@ app.get("/api", (req, res) => {
 })
 
 ;(async () => {
-    // fetch builings as ways
-    const api = await fetch(overURL, {
-        method: 'POST',
-        body: 'data=[out:json][timeout:90];way(42.378890,-72.542104,42.415273,-72.502940)[building];out;'
-    });
-    // fetch nodes 
-    const api2 = await fetch(overURL, {
-        method: 'POST',
-        body: 'data=[out:json][timeout:90];node(42.378890,-72.542104,42.415273,-72.502940)[!building][amenity != parking][!leisure];out;'
-    });
-    const waysRet = await api.json();
-    const nodesRet = await api2.json(); 
-    let ways = waysRet['elements']
-    let nodes = nodesRet['elements']
+    // connect to mongodb and get non elev nodes
+    const client = new MongoClient(uri)
+    client.connect
+    let db = client.db('geo')
+    let coll = db.collection('geoNear')
+    let geoNear = await coll.find().toArray()
+    client.close
 
-    // remove building nodes
-    // for all ways
-    for(let i = 0; i < ways.length; i++){
-        // for all nodes per way
-        if(Object.hasOwn(ways[i], 'nodes')){
-        for( let j = 0; j < ways[i]['nodes'].length; j++){
-            // for all nodes
-            for(let node in nodes){
-                // if id of waynode matches node then remove node
-                if(nodes[node].id == ways[i]['nodes'][j]){ 
-                    nodes.splice(node, 1); 
-                    break; 
-                }
-            }
-        }}
-    }
+    // convert nearest nodes to dictionary
+    let dict = nodesToDict(geoNear)
 
-    // remove duplicate nodes
-    let index1 = 0;
-    for(let node1 in nodes){
-        for(let node2 in nodes){
-            if(nodes[index1].id != nodes[node2].id && nodes[index1].lat == nodes[node2].lat && nodes[index1].lon == nodes[node2].lon){
-                nodes.splice(index1, 1);
-                --index1;
-                break;
-            }
-        }
-        ++index1
-    }
-
-    // get nearest nodes to each node and convert nodes to dictionary
-    near = nearest(nodes);
-    dict = nodesToDict(nodes);
     // run aStar and trace path
     let start = dict[61795906]
     let end = dict[6357577436]
-    let close = aStar(start, end, dict, near)
-    let tracer = trace(close, start, end)
+    let close = aStar(dict, start, end)
+    let tracer = trace(close)
     //console.log(tracer)
 
     console.log('finished');
 })()
+
 
 app.listen(5000, () => {console.log("Server started on port 5000")})
 
@@ -85,9 +50,7 @@ function trace(close){
     return trace
 }
 
-function aStar(start, end, nodes, near){
-    // a star
-    // take start and end nodes
+function aStar(nodes, start, end){
     // init open and close list
     let open = new Queue()
     let close = []
@@ -99,42 +62,37 @@ function aStar(start, end, nodes, near){
         // n = pop open node with smallest f
         let n = open.deq()
         // generate successors
-        succ = near[n.node.id]
+        succ = n.node.near
         // compute dist estimate for each successor
         for(let node in succ){
-            if(succ[node]['id'] != -1){
-                if(nodes[succ[node]['id']].lat == end.lat && nodes[succ[node]['id']].lon == end.lon){
+            if(succ[node] != -1){
+                // check if end node
+                if(nodes[succ[node]].lat == end.lat && nodes[succ[node]].lon == end.lon){
                     done = true
-                    close = close.concat([n, {node: nodes[succ[node]['id']], dist: n.dist + succ[node]['distance'], par: n.node}])
+                    close = close.concat([n, {node: nodes[succ[node]], dist: n.dist, par: n.node}])
                     break
                 }
-                // dist from start to n + from n to succ
-                dist = n.dist + succ[node]['distance'] - coordDist(n.node.lat, end.lat, n.node.lon, end.lon)
-                // + estimate from succ to end
-                //console.log(dist)
-                dist += coordDist(nodes[succ[node]['id']].lat, end.lat, nodes[succ[node]['id']].lon, end.lon)
-                //console.log(dist)
+                // dist computation
+                dist = n.dist + coordDist(n.node.lat, nodes[succ[node]].lat, n.node.lon, nodes[succ[node]].lon) - coordDist(n.node.lat, end.lat, n.node.lon, end.lon)
+                dist += coordDist(nodes[succ[node]].lat, end.lat, nodes[succ[node]].lon, end.lon)
                 // if succ in open or close with lower dist skip
-                if(!open.lower(succ[node]['id'], dist)){
+                if(!open.lower(succ[node], dist)){
                     // if not in close
                     let t = false
                     for(let i = 0; i < close.length; i++){
-                        if(succ[node]['id'] == close[i].id){
+                        if(succ[node] == close[i].node.id){
                             t = true
                         }
                     }
                     if(!t){
                         // add to queue
-                        open.enq(nodes[succ[node]['id']], dist, n.node)
+                        open.enq(nodes[succ[node]], dist, n.node)
                     }
                 }
             }
         }
         // push n to closed
-        if(!done){
-            //console.log(n)
-            close = close.concat([n])
-        }
+        if(!done){ close = close.concat([n]) }
     }
     // return closed as path
     return close
@@ -273,7 +231,8 @@ function nodesToDict(nodes){
         dict[nodes[node].id] = {
             id: nodes[node].id,
             lat: nodes[node].lat,
-            lon: nodes[node].lon
+            lon: nodes[node].lon,
+            near: nodes[node].near
         }
     }
     return dict;
