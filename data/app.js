@@ -4,20 +4,28 @@ const uri = "mongodb+srv://user:ytnsGNoez@cluster0.v7lea8f.mongodb.net/?retryWri
 const overURL = 'https://overpass-api.de/api/interpreter?'
 const elevURL = 'https://api.opentopodata.org/v1/ned10m?'
 
-// ;(async () => {
-//     // connect to mongo
-//     const client = new MongoClient(uri)
-//     await client.connect()
-//     // connect to geo db
-//     let db = client.db('geo')
-//     // connect to collection
-//     let collGeo = db.collection('geo')
-//     var result = await collGeo.insertMany(await getAll())
+const southLat = 42.378890
+const westLon = -72.542104
+const NorthLat = 42.415273
+const eastLon = -72.502940
 
-//     await client.close();
+;(async () => {
+    // connect to mongo
+    const client = new MongoClient(uri)
+    await client.connect()
+    // connect to geo db
+    let db = client.db('geo')
+    // connect to collection
+    let collGeo = db.collection('geo')
+    // delete data in collection and replace
+    let res = getAll()
+    let deleted = await collGeo.deleteMany()
+    let result = await collGeo.insertMany(res)
 
-//     console.log('Finsihed')
-// })()
+    await client.close();
+
+    console.log('Finsihed')
+})()
 
 // returns distance in meters between a two sets of latitude and longitude
 function coordDist(lat1, lat2, lon1, lon2){
@@ -144,12 +152,14 @@ async function getNodes(){
     // fetch builings as ways
     const api = await fetch(overURL, {
         method: 'POST',
-        body: 'data=[out:json][timeout:90];way(42.378890,-72.542104,42.415273,-72.502940)[building];out;'
+        //body: 'data=[out:json][timeout:90];way(42.378890,-72.542104,42.415273,-72.502940)[building];out;'
+        body: 'data=[out:json][timeout:90];way('.concat(southLat).concat(',').concat(westLon).concat(',').concat(NorthLat).concat(',').concat(eastLon).concat(')[building];out;')
     });
     // fetch nodes 
     const api2 = await fetch(overURL, {
         method: 'POST',
-        body: 'data=[out:json][timeout:90];node(42.378890,-72.542104,42.415273,-72.502940)[!building][amenity != parking][!leisure];out;'
+        //body: 'data=[out:json][timeout:90];node(42.378890,-72.542104,42.415273,-72.502940)[!building][amenity != parking][!leisure];out;'
+        body: 'data=[out:json][timeout:90];node('.concat(southLat).concat(',').concat(westLon).concat(',').concat(NorthLat).concat(',').concat(eastLon).concat(')[!building][amenity != parking][!leisure];out;')
     });
     const waysRet = await api.json();
     const nodesRet = await api2.json(); 
