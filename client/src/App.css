@@ -1,3 +1,10 @@
-.App {
-  text-align: center;
+.app {
+  display: flex;
+  height: 100vh;
+  color: #fff;
+}
+
+.marker-container {
+  cursor: url('redmarker.png'), auto;
+  
 }
