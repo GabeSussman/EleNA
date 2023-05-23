@@ -27,9 +27,8 @@ function convertCoords(coordinates) {
     return c;
 }
 
-const Map = ({isMarkerActive, setIsMarkerActive, startMarkerPosition, endMarkerPosition, setEndMarkerPosition, setStartMarkerPosition}) => {
+const Map = ({isMarkerActive, setIsMarkerActive, startMarkerPosition, endMarkerPosition, setEndMarkerPosition, setStartMarkerPosition, center, setCenter}) => {
     
-    const [center, setCenter] = useState(null);
     //initial map zoom
     const ZOOM_LEVEL = 20;
     const mapRef = useRef();
@@ -56,7 +55,7 @@ const Map = ({isMarkerActive, setIsMarkerActive, startMarkerPosition, endMarkerP
         );
 
 
-      }, [isMarkerActive, startMarkerPosition, endMarkerPosition]);
+      }, [isMarkerActive, startMarkerPosition, endMarkerPosition, center]);
 
 
     //render route once user chooses start/end

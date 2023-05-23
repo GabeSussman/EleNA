@@ -24,10 +24,27 @@ const Page = () => {
         console.log(isMarkerActive);
     }
 
+    //center coords
+    const [center, setCenter] = useState([42.3898, -72.5283]);
+
+    const getCurrentLocation = () => {
+    
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            document.getElementById('start').value = `Lat: ${lat}, Lng: ${lng}`;
+            setCenter([lat, lng]);
+          });
+        } else {
+          alert("Geolocation is not supported by this browser.");
+        }
+      }
+
     return(
         <div className={isMarkerActive ? "cursor-crosshairs" : ""}>
-            <Map isMarkerActive={isMarkerActive} setIsMarkerActive={setIsMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} setEndMarkerPosition={setEndMarkerPosition} setStartMarkerPosition={setStartMarkerPosition}/>
-            <Sidebar handleClick={setMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} />
+            <Map center={center} setCenter={setCenter} isMarkerActive={isMarkerActive} setIsMarkerActive={setIsMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} setEndMarkerPosition={setEndMarkerPosition} setStartMarkerPosition={setStartMarkerPosition}/>
+            <Sidebar handleClick={setMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} getCurrentLocation={getCurrentLocation} />
         </div>
     );
 }

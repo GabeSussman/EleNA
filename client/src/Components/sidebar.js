@@ -18,20 +18,20 @@ const Sidebar = (props) => {
 
   
 
-  const getCurrentLocation = () => {
+  // const getCurrentLocation = () => {
     
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        document.getElementById('start').value = `Lat: ${lat}, Lng: ${lng}`;
-        const coords = [lat,lng];
-        return coords;
-      });
-    } else {
-      alert("Geolocation is not supported by this browser.");
-    }
-  }
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition((position) => {
+  //       const lat = position.coords.latitude;
+  //       const lng = position.coords.longitude;
+  //       document.getElementById('start').value = `Lat: ${lat}, Lng: ${lng}`;
+  //       const coords = [lat,lng];
+  //       return coords;
+  //     });
+  //   } else {
+  //     alert("Geolocation is not supported by this browser.");
+  //   }
+  // }
 
     return (
       <div className="sidebar">
@@ -89,7 +89,7 @@ const Sidebar = (props) => {
           </select>
         </div>
 
-        <button className="location-button" onClick={getCurrentLocation()}>
+        <button className="location-button" onClick={props.getCurrentLocation}>
                 <FontAwesomeIcon icon={faCrosshairs} />
         </button>
         <button className="submit-button">Submit</button>
