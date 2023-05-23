@@ -3,10 +3,19 @@ const app = express()
 const Queue = require('./Queue')
 const {MongoClient} = require('mongodb');
 const uri = "mongodb+srv://user:ytnsGNoez@cluster0.v7lea8f.mongodb.net/?retryWrites=true&w=majority"
+const southLat = 42.378890
+const westLon = -72.542104
+const northLat = 42.415273
+const eastLon = -72.502940
 
 // expected example /routes/42.392661/-72.533839/42.3931953/-72.5317209/max/.5
 app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
+    // check start and end in bounds
+    if(req.params.startLat > southLat && req.params.startLat < northLat && 
+        req.params.startLon > westLon && req.params.startLon < eastLon &&
+        req.params.endLat > southLat && req.params.endLat < northLat && 
+        req.params.endLon > westLon && req.params.endLon < eastLon){
     // connect to mongodb and get non elev nodes
     const client = new MongoClient(uri)
     client.connect
@@ -32,7 +41,9 @@ app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, re
         res.json(path)
 
     })
-
+    } else {
+        res.json('Error, start or end coordinate is out of bounds')
+    }
 })
 
 // ;(async () => {
