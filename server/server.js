@@ -1,73 +1,158 @@
 const express = require('express')
 const app = express()
 const Queue = require('./Queue')
-const overURL = 'https://overpass-api.de/api/interpreter?'
+const {MongoClient} = require('mongodb');
+const uri = "mongodb+srv://user:ytnsGNoez@cluster0.v7lea8f.mongodb.net/?retryWrites=true&w=majority"
+const southLat = 42.378890
+const westLon = -72.542104
+const northLat = 42.415273
+const eastLon = -72.502940
 
-app.get("/api", (req, res) => {
+// expected example /routes/42.392661/-72.533839/42.3931953/-72.5317209/max/.5
+app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
-    res.json("test")
+    // check start and end in bounds
+    if(req.params.startLat > southLat && req.params.startLat < northLat && 
+        req.params.startLon > westLon && req.params.startLon < eastLon &&
+        req.params.endLat > southLat && req.params.endLat < northLat && 
+        req.params.endLon > westLon && req.params.endLon < eastLon){
+    // connect to mongodb and get non elev nodes
+    const client = new MongoClient(uri)
+    client.connect
+    let db = client.db('geo')
+    let collAll = db.collection('geo')
+    let geoAll = collAll.find().toArray()
+    client.close
+    geoAll.then((data) => {
+        // convert nodes to dictionary
+        let nodes = nodesToDict(data)
+        // get start and end nodes as closest lat lon
+        let start = nodes[nearest(req.params.startLat, req.params.startLon, data)]
+        let end = nodes[nearest(req.params.endLat, req.params.endLon, data)]
+        let m = req.params.choice
+        let per = req.params.percent
+        // calculate shortest distance path
+        let close = aStar(nodes, start, end)
+        let shortPath = trace(close)
+        let shortDist = shortPath[0].dist
+        // calculate min/max elevation path
+        let closeElev = aStarElev(nodes, start, end, m, shortDist * (1+per))
+        let path = trace(closeElev)
+        res.json(path)
+
+    })
+    } else {
+        res.json('Error, start or end coordinate is out of bounds')
+    }
 })
 
-;(async () => {
-    // fetch builings as ways
-    const api = await fetch(overURL, {
-        method: 'POST',
-        body: 'data=[out:json][timeout:90];way(42.378890,-72.542104,42.415273,-72.502940)[building];out;'
-    });
-    // fetch nodes 
-    const api2 = await fetch(overURL, {
-        method: 'POST',
-        body: 'data=[out:json][timeout:90];node(42.378890,-72.542104,42.415273,-72.502940)[!building][amenity != parking][!leisure];out;'
-    });
-    const waysRet = await api.json();
-    const nodesRet = await api2.json(); 
-    let ways = waysRet['elements']
-    let nodes = nodesRet['elements']
+// ;(async () => {
+//     // connect to db
+//     const client = new MongoClient(uri)
+//     client.connect
+//     let db = client.db('geo')
+//     let collAll = db.collection('geo')
+//     let geoAll = collAll.find().toArray()
+//     client.close
+//     geoAll.then((data) => {
+//         // convert nodes to dictionary
+//         let nodes = nodesToDict(data)
+//         // get start and end nodes as closest lat lon
+//         let start = nodes[nearest(42.392661, -72.533839, data)]
+//         let end = nodes[nearest(42.3931953, -72.5317209, data)]
+//         let m = 'min'
+//         let per = .5
+//         // calculate shortest distance path
+//         let close = aStar(nodes, start, end)
+//         let shortPath = trace(close)
+//         let shortDist = shortPath[0].dist
+//         // calculate min/max elevation path
+//         let closeElev = aStarElev(nodes, start, end, m, shortDist * (1+per))
+//         let path = trace(closeElev)
+//         console.log(path.length)
+//         console.log(distChange(shortPath))
+//         console.log(distChange(path))
+//     })
+// })()
 
-    // remove building nodes
-    // for all ways
-    for(let i = 0; i < ways.length; i++){
-        // for all nodes per way
-        if(Object.hasOwn(ways[i], 'nodes')){
-        for( let j = 0; j < ways[i]['nodes'].length; j++){
-            // for all nodes
-            for(let node in nodes){
-                // if id of waynode matches node then remove node
-                if(nodes[node].id == ways[i]['nodes'][j]){ 
-                    nodes.splice(node, 1); 
-                    break; 
-                }
-            }
-        }}
-    }
-
-    // remove duplicate nodes
-    let index1 = 0;
-    for(let node1 in nodes){
-        for(let node2 in nodes){
-            if(nodes[index1].id != nodes[node2].id && nodes[index1].lat == nodes[node2].lat && nodes[index1].lon == nodes[node2].lon){
-                nodes.splice(index1, 1);
-                --index1;
-                break;
-            }
-        }
-        ++index1
-    }
-
-    // get nearest nodes to each node and convert nodes to dictionary
-    near = nearest(nodes);
-    dict = nodesToDict(nodes);
-    // run aStar and trace path
-    let start = dict[61795906]
-    let end = dict[6357577436]
-    let close = aStar(start, end, dict, near)
-    let tracer = trace(close, start, end)
-    //console.log(tracer)
-
-    console.log('finished');
-})()
 
 app.listen(5000, () => {console.log("Server started on port 5000")})
+
+function distChange(path){
+    let e = 0
+    let dist = path[0].dist
+    for(let i = 0; i < path.length - 2; i++){
+        e += Math.abs(path[i].node.elev - path[i+1].node.elev)
+    }
+    return [e, dist]
+}
+
+function nearest(lat, lon, nodes){
+    let minDist = Infinity
+    let id = -1
+    for(n in nodes){
+        let dist = coordDist(lat, nodes[n].lat, lon, nodes[n].lon)
+        if(dist < minDist){
+            id = nodes[n].id
+            minDist = dist
+        }
+    }
+    return id
+}
+
+function aStarElev(nodes, start, end, m, maxDist){
+    // m either 'max' or 'min'
+    // init open and close list
+    let open = new Queue()
+    let close = []
+    // push start to open
+    open.enq(start, coordDist(start.lat, end.lat, start.lon, end.lon), undefined, start.elev, 0)
+    // while open ! empty
+    let done = false
+    while(!open.isEmpty() && !done){
+        // n = pop open node with smallest f
+        let n = open.deqEle(m)
+        // generate successors
+        succ = n.node.near
+        // compute dist estimate for each successor
+        for(let node in succ){
+            if(succ[node] != -1){
+                // check if end node
+                //console.log(n.node.id)
+                if(nodes[succ[node]].lat == end.lat && nodes[succ[node]].lon == end.lon){
+                    done = true
+                    close = close.concat([n, {node: nodes[succ[node]], dist: n.dist, par: n.node}])
+                    break
+                }
+                // dist computation
+                dist = n.dist + coordDist(n.node.lat, nodes[succ[node]].lat, n.node.lon, nodes[succ[node]].lon) - coordDist(n.node.lat, end.lat, n.node.lon, end.lon)
+                dist += coordDist(nodes[succ[node]].lat, end.lat, nodes[succ[node]].lon, end.lon)
+                // if succ in open or close with lower dist skip
+                // check dist within maxDist
+                // calculate elevation change 
+                let el = nodes[succ[node]].elev
+                let ec = Math.abs(el - n.elev)
+                if(!open.change(succ[node], ec, m) && dist < maxDist){
+                    // if not in close
+                    let t = false
+                    for(let i = 0; i < close.length; i++){
+                        if(succ[node] == close[i].node.id){
+                            t = true
+                        }
+                    }
+                    if(!t){
+                        // add to queue
+                        open.enq(nodes[succ[node]], dist, n.node, el, ec)
+                    }
+                }
+            }
+        }
+        // push n to closed
+        if(!done){ close = close.concat([n]) }
+    }
+    // return closed as path
+    return close
+}
 
 function trace(close){
     // loop through close(aStar return) following parent nodes to create path from start to end
@@ -85,9 +170,7 @@ function trace(close){
     return trace
 }
 
-function aStar(start, end, nodes, near){
-    // a star
-    // take start and end nodes
+function aStar(nodes, start, end){
     // init open and close list
     let open = new Queue()
     let close = []
@@ -99,42 +182,37 @@ function aStar(start, end, nodes, near){
         // n = pop open node with smallest f
         let n = open.deq()
         // generate successors
-        succ = near[n.node.id]
+        succ = n.node.near
         // compute dist estimate for each successor
         for(let node in succ){
-            if(succ[node]['id'] != -1){
-                if(nodes[succ[node]['id']].lat == end.lat && nodes[succ[node]['id']].lon == end.lon){
+            if(succ[node] != -1){
+                // check if end node
+                if(nodes[succ[node]].lat == end.lat && nodes[succ[node]].lon == end.lon){
                     done = true
-                    close = close.concat([n, {node: nodes[succ[node]['id']], dist: n.dist + succ[node]['distance'], par: n.node}])
+                    close = close.concat([n, {node: nodes[succ[node]], dist: n.dist, par: n.node}])
                     break
                 }
-                // dist from start to n + from n to succ
-                dist = n.dist + succ[node]['distance'] - coordDist(n.node.lat, end.lat, n.node.lon, end.lon)
-                // + estimate from succ to end
-                //console.log(dist)
-                dist += coordDist(nodes[succ[node]['id']].lat, end.lat, nodes[succ[node]['id']].lon, end.lon)
-                //console.log(dist)
+                // dist computation
+                dist = n.dist + coordDist(n.node.lat, nodes[succ[node]].lat, n.node.lon, nodes[succ[node]].lon) - coordDist(n.node.lat, end.lat, n.node.lon, end.lon)
+                dist += coordDist(nodes[succ[node]].lat, end.lat, nodes[succ[node]].lon, end.lon)
                 // if succ in open or close with lower dist skip
-                if(!open.lower(succ[node]['id'], dist)){
+                if(!open.lower(succ[node], dist)){
                     // if not in close
                     let t = false
                     for(let i = 0; i < close.length; i++){
-                        if(succ[node]['id'] == close[i].id){
+                        if(succ[node] == close[i].node.id){
                             t = true
                         }
                     }
                     if(!t){
                         // add to queue
-                        open.enq(nodes[succ[node]['id']], dist, n.node)
+                        open.enq(nodes[succ[node]], dist, n.node)
                     }
                 }
             }
         }
         // push n to closed
-        if(!done){
-            //console.log(n)
-            close = close.concat([n])
-        }
+        if(!done){ close = close.concat([n]) }
     }
     // return closed as path
     return close
@@ -154,116 +232,6 @@ function coordDist(lat1, lat2, lon1, lon2){
     return R * c;
 }
 
-function nearest(nodes, ){
-    // determine nearby nodes for each node save as dict
-    dict = {}
-    // for every node1
-    for(let node1 in nodes){
-        //yconsole.log(node1)
-        let nNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        let sNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        let eNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        let wNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        let neNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        let nwNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        let seNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        let swNode = {'id': -1, 'distance': Infinity, par: nodes[node1].id}
-        // for every other node2
-        for(let node2 in nodes){
-            if(nodes[node1].id != nodes[node2].id){
-                let lat1 = nodes[node1].lat
-                let lat2 = nodes[node2].lat
-                let lon1 = nodes[node1].lon
-                let lon2 = nodes[node2].lon
-                // //console.log(lat1, lon1, lat2, lon2)
-
-                // // calculate distance
-                // const R = 6371000;
-                // const lat1r = lat1 * Math.PI/180;
-                // const lat2r = lat2 * Math.PI/180;
-                // const latChange = (lat2-lat1) * Math.PI/180;
-                // const lonChange = (lon2-lon1) * Math.PI/180;
-                // const a = Math.sin(latChange/2) * Math.sin(latChange/2) +
-                //         Math.cos(lat1r) * Math.cos(lat2r) *
-                //         Math.sin(lonChange/2) * Math.sin(lonChange/2);
-                // const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                // const dist = R * c;
-
-                let dist = coordDist(nodes[node1].lat, nodes[node2].lat, nodes[node1].lon, nodes[node2].lon)
-
-                // calculate direction
-                let threshLat = .0001;
-                let threshLon = .0001;
-                // if direction within some distance
-                if(dist < 100){
-                    // if long within theshold and lat > then north
-                    if(Math.abs(lon1-lon2) < threshLon && lat2 > lat1){
-                        if(dist < nNode['distance']){
-                            nNode['id'] = nodes[node2].id;
-                            nNode['distance'] = dist;
-                        }
-                    }
-                    // elif long within theshold and lat < then south
-                    else if(Math.abs(lon1-lon2) < threshLon && lat2 < lat1){
-                        if(dist < sNode['distance']){
-                            sNode['id'] = nodes[node2].id;
-                            sNode['distance'] = dist;
-                        }
-                    }
-                    // elif lat within thershold and long > then east
-                    else if(Math.abs(lat1-lat2) < threshLat && lon2 > lon1){
-                        if(dist < eNode['distance']){
-                            eNode['id'] = nodes[node2].id;
-                            eNode['distance'] = dist;
-                        }
-                    }
-                    // elif lat within thershold and long < then west
-                    else if(Math.abs(lat1-lat2) < threshLat && lon2 < lon1){
-                        if(dist < wNode['distance']){
-                            wNode['id'] = nodes[node2].id;
-                            wNode['distance'] = dist;
-                        }
-                    }
-                    // elif lat and long > then north east
-                    else if(lat2 > lat1 && lon2 > lon1){
-                        if(dist < neNode['distance']){
-                            neNode['id'] = nodes[node2].id;
-                            neNode['distance'] = dist;
-                        }
-                    }
-                    // elif lat > long < then north west
-                    else if(lat2 > lat1 && lon2 < lon1){
-                        if(dist < nwNode['distance']){
-                            nwNode['id'] = nodes[node2].id;
-                            nwNode['distance'] = dist;
-                        }
-                    }
-                    // elif lat < and long < then south west
-                    else if(lat2 < lat1 && lon2 < lon1){
-                        if(dist < swNode['distance']){
-                            swNode['id'] = nodes[node2].id;
-                            swNode['distance'] = dist;
-                        }
-                    }
-                    // elif lat < and long > then south east
-                    else if(lat2 < lat1 && lon2 > lon1){
-                        if(dist < seNode['distance']){
-                            seNode['id'] = nodes[node2].id;
-                            seNode['distance'] = dist;
-                        }
-                    }
-                    // else should never occur
-                    else{   console.log("THIS SHOULDN'T HAPPEN"); 
-                            console.log(lat1, lat2, lon1, lon2, nodes[node1].id, nodes[node2].id);}
-                }
-            }
-        }
-        // save nearest node in each direction dict[node1id] = [successors (as [node2id, dir])]
-        dict[nodes[node1].id] = [nNode, eNode, sNode, wNode, neNode, seNode, swNode, nwNode];
-    }
-    return dict;
-}
-
 function nodesToDict(nodes){
     dict = {}
     // loop through nodes to
@@ -273,7 +241,9 @@ function nodesToDict(nodes){
         dict[nodes[node].id] = {
             id: nodes[node].id,
             lat: nodes[node].lat,
-            lon: nodes[node].lon
+            lon: nodes[node].lon,
+            near: nodes[node].near,
+            elev: nodes[node].elev
         }
     }
     return dict;
