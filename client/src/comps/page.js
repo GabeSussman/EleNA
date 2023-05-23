@@ -5,6 +5,7 @@ import "./page.css"
 import { faCrosshairs } from "@fortawesome/free-solid-svg-icons";
 
 const Page = () => {
+  const [loading, setLoading] = useState(false); // Add this to your states
 
     //keep track of if custom route is toggled
     const [isMarkerActive, setIsMarkerActive] = useState(false);
@@ -28,11 +29,12 @@ const Page = () => {
 
     // route fetching function
     const fetchRoute = () => {
-      let url = 'http://localhost:5000/routes/'.concat(startLat).concat('/').concat(startLon).concat('/').concat(endLat).concat('/').concat(endLon)
+      setLoading(true);
+      let url = 'http://localhost:5001/routes/'.concat(startLat).concat('/').concat(startLon).concat('/').concat(endLat).concat('/').concat(endLon)
       .concat('/').concat(minMax).concat('/').concat(percent/100)
       fetch(url)
       .then( response => response.json() )
-      .then( data => {setRoute(data); console.log(data)})
+      .then( data => {setRoute(data); setLoading(false);console.log(data)})
       console.log(route);
     }
 
@@ -62,7 +64,7 @@ const Page = () => {
 
     return(
         <div className={isMarkerActive ? "cursor-crosshairs" : ""}>
-            <Map route={route} setRoute={setRoute} startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
+            <Map loading={loading} route={route} setRoute={setRoute} startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
               endLat={endLat} setEndLat={setEndLat} endLon={endLon} setEndLon={setEndLon} center={center} setCenter={setCenter} isMarkerActive={isMarkerActive} setIsMarkerActive={setIsMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} setEndMarkerPosition={setEndMarkerPosition} setStartMarkerPosition={setStartMarkerPosition}/>
             <Sidebar handleClick={setMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} getCurrentLocation={getCurrentLocation} 
               startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
