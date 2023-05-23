@@ -4,6 +4,7 @@
   color: #fff;
 }
 
+<<<<<<< HEAD
 .sidebar {
   width: 30%;
   height: 100vh;
@@ -96,4 +97,9 @@
   justify-content: center;
   align-items: center;
   margin-top: 20px;
+=======
+.marker-container {
+  cursor: url('redmarker.png'), auto;
+  
+>>>>>>> howie
 }
