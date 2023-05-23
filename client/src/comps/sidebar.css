@@ -1,0 +1,7 @@
+.input-group.empty {
+    border-color: red;
+  }
+  
+  .input-group.empty input {
+    border-color: red;
+  }
