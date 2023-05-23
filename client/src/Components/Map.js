@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./map.css";
-import { MapContainer, TileLayer, Polyline, Marker, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Polyline, Marker, useMapEvents, useMap } from "react-leaflet";
 import { useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import "./sidebar";
@@ -74,6 +74,7 @@ const Map = ({isMarkerActive, setIsMarkerActive, startMarkerPosition, endMarkerP
   
       useMapEvents({
           click: (e) => {
+              
               const { lat, lng } = e.latlng;
               if (clicks === 0) {
                   setStartMarkerPosition([lat, lng]);
@@ -101,7 +102,7 @@ const Map = ({isMarkerActive, setIsMarkerActive, startMarkerPosition, endMarkerP
     return center ? (
     
         <div className="map">
-            <MapContainer center={center} zoom={ZOOM_LEVEL} ref={mapRef} minZoom = {0}>
+            <MapContainer center={center} zoom={ZOOM_LEVEL} ref={mapRef} minZoom = {14}>
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
