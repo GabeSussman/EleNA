@@ -3,7 +3,7 @@ import "./map.css";
 import { MapContainer, TileLayer, Polyline, Marker, useMapEvents, useMap } from "react-leaflet";
 import { useRef } from "react";
 import "leaflet/dist/leaflet.css";
-import "./comps/sidebar";
+import "./sidebar";
 import L from 'leaflet';
 import customMarker from './redmarker.png';
 import "./page";

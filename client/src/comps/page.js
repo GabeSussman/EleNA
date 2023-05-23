@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "./comps/sidebar";
-import Map from "./comps/Map";
+import Sidebar from "./sidebar";
+import Map from "./Map";
 import "./page.css"
 import { faCrosshairs } from "@fortawesome/free-solid-svg-icons";
 
