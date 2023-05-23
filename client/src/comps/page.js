@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "./sidebar";
-import Map from "./Map";
+import Sidebar from "./comps/sidebar";
+import Map from "./comps/Map";
 import "./page.css"
 import { faCrosshairs } from "@fortawesome/free-solid-svg-icons";
 
@@ -29,16 +29,16 @@ const Page = () => {
     // route fetching function
     const fetchRoute = () => {
       let url = 'http://localhost:5000/routes/'.concat(startLat).concat('/').concat(startLon).concat('/').concat(endLat).concat('/').concat(endLon)
-      .concat('/').concat(minMax).concat('/').concat(percent)
+      .concat('/').concat(minMax).concat('/').concat(percent/100)
       fetch(url)
       .then( response => response.json() )
-      .then( data => setRoute(data))
+      .then( data => {setRoute(data); console.log(data)})
+      console.log(route);
     }
 
     //custom route button pressed
     const setMarkerActive = () => {
         setIsMarkerActive(!isMarkerActive);
-        console.log(isMarkerActive);
     }
 
     //center coords
@@ -62,7 +62,8 @@ const Page = () => {
 
     return(
         <div className={isMarkerActive ? "cursor-crosshairs" : ""}>
-            <Map center={center} setCenter={setCenter} isMarkerActive={isMarkerActive} setIsMarkerActive={setIsMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} setEndMarkerPosition={setEndMarkerPosition} setStartMarkerPosition={setStartMarkerPosition}/>
+            <Map route={route} setRoute={setRoute} startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
+              endLat={endLat} setEndLat={setEndLat} endLon={endLon} setEndLon={setEndLon} center={center} setCenter={setCenter} isMarkerActive={isMarkerActive} setIsMarkerActive={setIsMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} setEndMarkerPosition={setEndMarkerPosition} setStartMarkerPosition={setStartMarkerPosition}/>
             <Sidebar handleClick={setMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} getCurrentLocation={getCurrentLocation} 
               startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
               endLat={endLat} setEndLat={setEndLat} endLon={endLon} setEndLon={setEndLon} percent={percent} 

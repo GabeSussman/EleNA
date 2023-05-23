@@ -1,8 +1,8 @@
 import './App.css';
 import {useEffect, useState} from 'react';
-import Sidebar from './components/sidebar';
-import Map from "./components/Map";
-import Page from "./components/page";
+import Sidebar from './comps/sidebar';
+import Map from "./comps/Map";
+import Page from "./comps/page";
 import { faCrosshairs } from "@fortawesome/free-solid-svg-icons";
 
 function App() {
