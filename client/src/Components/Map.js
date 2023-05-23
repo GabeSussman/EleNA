@@ -27,16 +27,13 @@ function convertCoords(coordinates) {
     return c;
 }
 
-const Map = ({isMarkerActive, setIsMarkerActive}) => {
+const Map = ({isMarkerActive, setIsMarkerActive, startMarkerPosition, endMarkerPosition, setEndMarkerPosition, setStartMarkerPosition}) => {
     
     const [center, setCenter] = useState(null);
     //initial map zoom
     const ZOOM_LEVEL = 20;
     const mapRef = useRef();
 
-    //start and end markers
-    const [startMarkerPosition, setStartMarkerPosition] = useState(null);
-    const [endMarkerPosition, setEndMarkerPosition] = useState(null);
 
     //path coordinates
     let coordinates = [null, null];
@@ -70,58 +67,37 @@ const Map = ({isMarkerActive, setIsMarkerActive}) => {
     }
 
     
-
-    //Add a marker on the map and update lat/long of start marker
-    function AddMarkerStart() {
-
-      useMapEvents({
-        click: (e) => {
-          const { lat, lng } = e.latlng;
-          setStartMarkerPosition([lat, lng]);
-          setClicks(clicks++);
-        },
-      });
-
+    function AddMarker() {
       const customIcon = L.icon({
-        iconUrl: customMarker,
-        iconSize: [32, 32],
+          iconUrl: customMarker,
+          iconSize: [32, 32],
       });
-
-      if(isMarkerActive == false) {
-        setStartMarkerPosition(null);
-        setClicks(0);
+  
+      useMapEvents({
+          click: (e) => {
+              const { lat, lng } = e.latlng;
+              if (clicks === 0) {
+                  setStartMarkerPosition([lat, lng]);
+              } else if (clicks === 1) {
+                  setEndMarkerPosition([lat, lng]);
+              }
+              setClicks(prevClicks => prevClicks + 1);
+          },
+      });
+  
+      if (isMarkerActive === false) {
+          setStartMarkerPosition(null);
+          setEndMarkerPosition(null);
+          setClicks(0);
       }
   
-      return startMarkerPosition === null ? null : (
-        <Marker position={startMarkerPosition} icon={customIcon} draggable={false}></Marker>
+      return (
+          <>
+              {startMarkerPosition && <Marker position={startMarkerPosition} icon={customIcon} draggable={false} />}
+              {endMarkerPosition && <Marker position={endMarkerPosition} icon={customIcon} draggable={false} />}
+          </>
       );
-    }
-
-    //Add a marker on the map and update lat/long of end marker
-    function AddMarkerEnd() {
-      useMapEvents({
-        click: (e) => {
-          const { lat, lng } = e.latlng;
-          setEndMarkerPosition([lat, lng]);
-          setClicks(clicks++);
-        },
-      });
-
-      const customIcon = L.icon({
-        iconUrl: customMarker,
-        iconSize: [32, 32],
-      });
-
-      if(isMarkerActive == false) {
-        setEndMarkerPosition(null);
-        setClicks(0);
-      }
-  
-      return endMarkerPosition === null ? null : (
-        <Marker position={endMarkerPosition} icon={customIcon} draggable={false}></Marker>
-      );
-    }
-      
+  }
       
     return center ? (
     
@@ -130,8 +106,7 @@ const Map = ({isMarkerActive, setIsMarkerActive}) => {
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <AddMarkerStart />
-                <AddMarkerEnd />
+                <AddMarker />
                 {route}
             </MapContainer>
             

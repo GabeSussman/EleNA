@@ -76,7 +76,7 @@ const Sidebar = (props) => {
           <FontAwesomeIcon icon ={faMap} />
           <button onClick={props.handleClick}>
             Custom Route
-            <FontAwesomeIcon icon={props.isToggled ? faToggleOn : faToggleOff} />
+            <FontAwesomeIcon icon={props.isMarkerActive ? faToggleOn : faToggleOff} />
           </button>
         </div>
 
