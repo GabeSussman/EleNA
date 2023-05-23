@@ -43,8 +43,19 @@ const Sidebar = (props) => {
             type="text"
             id="start"
             name="start"
+            value={props.startLat}
+            onChange={(e) => props.setStartLat(e.target.value)}
             required
             placeholder="Choose starting point"
+          />
+          <input
+            type="text"
+            id="start"
+            name="start"
+            value={props.startLon}
+            onChange={(e) => props.setStartLon(e.target.value)}
+            required
+            placeholder="Starting Longitude"
           />
         </div>
 
@@ -54,8 +65,19 @@ const Sidebar = (props) => {
             type="text"
             id="destination"
             name="destination"
+            value={props.endLat}
+            onChange={(e) => props.setEndLat(e.target.value)}
             required
             placeholder="Choose destination"
+          />
+          <input
+            type="text"
+            id="destination"
+            name="destination"
+            value={props.endLon}
+            onChange={(e) => props.setEndLon(e.target.value)}
+            required
+            placeholder="Destination Latitude"
           />
         </div>
 
@@ -67,6 +89,8 @@ const Sidebar = (props) => {
             name="deviation"
             min="0"
             max="100"
+            value={props.percent}
+            onChange={(e) => props.setPercent(e.target.value)}
             required
             placeholder="Choose deviation (%)"
           />
@@ -92,7 +116,7 @@ const Sidebar = (props) => {
         <button className="location-button" onClick={props.getCurrentLocation}>
                 <FontAwesomeIcon icon={faCrosshairs} />
         </button>
-        <button className="submit-button">Submit</button>
+        <button className="submit-button" onClick={props.fetchRoute}>Submit</button>
 
         
       </div>
