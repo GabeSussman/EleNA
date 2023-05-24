@@ -7,7 +7,7 @@ const southLat = 42.378890
 const westLon = -72.542104
 const northLat = 42.415273
 const eastLon = -72.502940
-
+const fs = require('fs')
 // expected example /routes/42.392661/-72.533839/42.3931953/-72.5317209/max/.5
 // waits for call and returns route
 app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, res) => {
@@ -27,6 +27,7 @@ app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, re
     geoAll.then((data) => {
         // convert nodes to dictionary
         let nodes = nodesToDict(data)
+        fs.writeFileSync('nodes.json', JSON.stringify(nodes))
         // get start and end nodes as closest lat lon
         let start = nodes[nearest(req.params.startLat, req.params.startLon, data)]
         let end = nodes[nearest(req.params.endLat, req.params.endLon, data)]
@@ -270,3 +271,5 @@ function trim(path){
     }
     return arr
 }
+
+module.exports = {trace, aStar}
