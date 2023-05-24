@@ -7,7 +7,6 @@ const southLat = 42.378890
 const westLon = -72.542104
 const northLat = 42.415273
 const eastLon = -72.502940
-
 // expected example /routes/42.392661/-72.533839/42.3931953/-72.5317209/max/.5
 // waits for call and returns route
 app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, res) => {
@@ -270,3 +269,5 @@ function trim(path){
     }
     return arr
 }
+
+module.exports = {trace, aStar}
