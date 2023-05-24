@@ -16,22 +16,11 @@ import { useState } from "react";
 
 const Sidebar = (props) => {
 
+  const handleClick = () => {
+    props.handleClick();
+    console.log("sidebar handleclick")
+  };
   
-
-  // const getCurrentLocation = () => {
-    
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition((position) => {
-  //       const lat = position.coords.latitude;
-  //       const lng = position.coords.longitude;
-  //       document.getElementById('start').value = `Lat: ${lat}, Lng: ${lng}`;
-  //       const coords = [lat,lng];
-  //       return coords;
-  //     });
-  //   } else {
-  //     alert("Geolocation is not supported by this browser.");
-  //   }
-  // }
 
   return (
     <div className="sidebar">
@@ -96,13 +85,18 @@ const Sidebar = (props) => {
         />
       </div>
 
-      <div>
+      <div className="input-group-button">
         <FontAwesomeIcon icon ={faMap} />
-        <button onClick={props.handleClick}>
-          Custom Route
-          <FontAwesomeIcon icon={props.isMarkerActive ? faToggleOn : faToggleOff} />
+        <button onClick={handleClick} className="toggle-button">
+        Custom Route
+        <FontAwesomeIcon icon={props.isMarkerActive ? faToggleOff : faToggleOn}/>
         </button>
       </div>
+
+      <div>
+
+      </div>
+
 
       <label>Choose Travel Mode</label>
       <div className="input-group">

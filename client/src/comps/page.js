@@ -3,16 +3,14 @@ import Sidebar from "./sidebar";
 import Map from "./Map";
 import "./page.css"
 import { faCrosshairs } from "@fortawesome/free-solid-svg-icons";
+import {faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Page = () => {
   const [loading, setLoading] = useState(false); // Add this to your states
 
     //keep track of if custom route is toggled
     const [isMarkerActive, setIsMarkerActive] = useState(false);
-
-    //start and end toggle buttons
-    const [startToggle, setStartToggle] = useState(false);
-    const [endToggle, setEndToggle] = useState(false);
 
     //start and end markers
     const [startMarkerPosition, setStartMarkerPosition] = useState(null);
@@ -44,14 +42,17 @@ const Page = () => {
     }
 
     //custom route button pressed
-    const setMarkerActive = () => {
+    const handleClick = () => {
         setIsMarkerActive(!isMarkerActive);
+        setRoute(null);
+        console.log("page handleclick");
     }
 
     //clear all button pressed
     const clear = () => {
       window.location.reload(true);
     }
+
 
     //center coords
     const [center, setCenter] = useState([42.3898, -72.5283]);
@@ -71,12 +72,11 @@ const Page = () => {
           alert("Geolocation is not supported by this browser.");
         }
       }
-
     return(
-        <div className={isMarkerActive ? "cursor-crosshairs" : ""}>
+        <div>
             <Map loading={loading} route={route} setRoute={setRoute} startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
               endLat={endLat} setEndLat={setEndLat} endLon={endLon} setEndLon={setEndLon} center={center} setCenter={setCenter} isMarkerActive={isMarkerActive} setIsMarkerActive={setIsMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} setEndMarkerPosition={setEndMarkerPosition} setStartMarkerPosition={setStartMarkerPosition}/>
-            <Sidebar clear={clear} handleClick={setMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} getCurrentLocation={getCurrentLocation} 
+            <Sidebar clear={clear} handleClick={handleClick} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} getCurrentLocation={getCurrentLocation} 
               startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
               endLat={endLat} setEndLat={setEndLat} endLon={endLon} setEndLon={setEndLon} percent={percent} 
               setPercent={setPercent} minMax={minMax} setMinMax={setMinMax} fetchRoute={fetchRoute}/>
