@@ -116,8 +116,12 @@ const Sidebar = (props) => {
       <button className="location-button" onClick={props.getCurrentLocation}>
               <FontAwesomeIcon icon={faCrosshairs} />
       </button>
-      <button className="submit-button" onClick={props.fetchRoute}>Submit</button>
 
+      <div className="button-container">
+      <button className="submit-button" onClick={props.clear}>Clear All</button>
+
+      <button className="submit-button" onClick={props.fetchRoute}>Submit</button>
+      </div>
       
     </div>
   );

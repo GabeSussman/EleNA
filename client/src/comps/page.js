@@ -29,6 +29,11 @@ const Page = () => {
 
     // route fetching function
     const fetchRoute = () => {
+
+      if(!startLat || !startLon || !endLat || !endLon || !minMax || !percent) {
+        alert("Please fill in all fields");
+        return("");
+      }
       setLoading(true);
       let url = 'http://localhost:5001/routes/'.concat(startLat).concat('/').concat(startLon).concat('/').concat(endLat).concat('/').concat(endLon)
       .concat('/').concat(minMax).concat('/').concat(percent/100)
@@ -41,6 +46,11 @@ const Page = () => {
     //custom route button pressed
     const setMarkerActive = () => {
         setIsMarkerActive(!isMarkerActive);
+    }
+
+    //clear all button pressed
+    const clear = () => {
+      window.location.reload(true);
     }
 
     //center coords
@@ -66,7 +76,7 @@ const Page = () => {
         <div className={isMarkerActive ? "cursor-crosshairs" : ""}>
             <Map loading={loading} route={route} setRoute={setRoute} startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
               endLat={endLat} setEndLat={setEndLat} endLon={endLon} setEndLon={setEndLon} center={center} setCenter={setCenter} isMarkerActive={isMarkerActive} setIsMarkerActive={setIsMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} setEndMarkerPosition={setEndMarkerPosition} setStartMarkerPosition={setStartMarkerPosition}/>
-            <Sidebar handleClick={setMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} getCurrentLocation={getCurrentLocation} 
+            <Sidebar clear={clear} handleClick={setMarkerActive} startMarkerPosition={startMarkerPosition} endMarkerPosition={endMarkerPosition} getCurrentLocation={getCurrentLocation} 
               startLat={startLat} setStartLat={setStartLat} startLon={startLon} setStartLon={setStartLon}
               endLat={endLat} setEndLat={setEndLat} endLon={endLon} setEndLon={setEndLon} percent={percent} 
               setPercent={setPercent} minMax={minMax} setMinMax={setMinMax} fetchRoute={fetchRoute}/>
