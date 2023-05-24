@@ -1,28 +1,23 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
+import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
 import {
   faMapMarkerAlt,
   faLocationArrow,
   faArrowsAltV,
   faRoute,
   faCrosshairs,
-  faMap
+  faMap,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-
-
-
+import "./sidebar.css";
 
 const Sidebar = (props) => {
-
-
   //handleclick for custom route toggle button (dupe for testing)
   const handleClick = () => {
     props.handleClick();
-    console.log("sidebar handleclick")
+    console.log("sidebar handleclick");
   };
-  
 
   return (
     <div className="sidebar">
@@ -88,39 +83,56 @@ const Sidebar = (props) => {
       </div>
 
       <div className="input-group-button">
-        <FontAwesomeIcon icon ={faMap} />
-        <button onClick={handleClick} className="toggle-button">
-        Custom Route
-        <FontAwesomeIcon icon={props.isMarkerActive ? faToggleOff : faToggleOn}/>
-        </button>
+        <FontAwesomeIcon className="mapIcon" icon={faMap} />
+        <div className="content-wrapper">
+          <div>Place Markers on Map</div>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={props.isMarkerActive}
+              onChange={handleClick}
+            />
+            <span className="slider round"></span>
+          </label>
+        </div>
       </div>
 
-      <div>
-
-      </div>
-
+      <div></div>
 
       <label>Choose Travel Mode</label>
       <div className="input-group">
         <FontAwesomeIcon icon={faArrowsAltV} />
-        <select name="travelMode" id="travelMode" onChange={(e) => {if(e.target.value === 'maximize'){props.setMinMax('max')}else{props.setMinMax('min')}}}>
+        <select
+          name="travelMode"
+          id="travelMode"
+          onChange={(e) => {
+            if (e.target.value === "maximize") {
+              props.setMinMax("max");
+            } else {
+              props.setMinMax("min");
+            }
+          }}
+        >
           <option value="maximize">Maximize Elevation</option>
           <option value="minimize">Minimize Elevation</option>
         </select>
       </div>
 
       <button className="location-button" onClick={props.getCurrentLocation}>
-              <FontAwesomeIcon icon={faCrosshairs} />
+        <FontAwesomeIcon icon={faCrosshairs} />
       </button>
 
       <div className="button-container">
-      <button className="submit-button" onClick={props.clear}>Clear All</button>
+        <button className="submit-button" onClick={props.clear}>
+          Clear All
+        </button>
 
-      <button className="submit-button" onClick={props.fetchRoute}>Submit</button>
+        <button className="submit-button" onClick={props.fetchRoute}>
+          Submit
+        </button>
       </div>
-      
     </div>
   );
-}
+};
 
 export default Sidebar;
