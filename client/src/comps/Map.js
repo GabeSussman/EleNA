@@ -134,7 +134,7 @@ const Map = (props) => {
         center={props.center}
         zoom={ZOOM_LEVEL}
         ref={mapRef}
-        minZoom={14}
+        minZoom={15}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <AddMarker />

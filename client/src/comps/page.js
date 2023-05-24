@@ -7,6 +7,7 @@ import {faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Page = () => {
+
   const [loading, setLoading] = useState(false); // Add this to your states
 
     //keep track of if custom route is toggled
@@ -37,15 +38,13 @@ const Page = () => {
       .concat('/').concat(minMax).concat('/').concat(percent/100)
       fetch(url)
       .then( response => response.json() )
-      .then( data => {setRoute(data); setLoading(false);console.log(data)})
-      console.log(route);
+      .then( data => {setRoute(data); setLoading(false); if(data === 'Error, start or end coordinate is out of bounds'){alert('Start or end is out of bounds'); clear()}})
     }
 
     //custom route button pressed, allows user to place markers
     const handleClick = () => {
         setIsMarkerActive(!isMarkerActive);
         setRoute(null);
-        console.log("page handleclick");
     }
 
     //clear all button pressed, refreshes page
