@@ -11,9 +11,11 @@ Running
 Server
 Build
 - In server folder run 'npm install'
+
 Running
 - In server folder run 'npm start'
 - Runs the server on local host, port 5001
+
 Testing
 - Run npm test
 
