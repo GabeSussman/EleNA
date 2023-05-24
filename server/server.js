@@ -38,7 +38,7 @@ app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, re
         // calculate min/max elevation path
         let closeElev = aStarElev(nodes, start, end, m, shortDist * (1+per))
         let path = trace(closeElev)
-        res.json(path)
+        res.json(trim(path))
 
     })
     } else {
@@ -247,4 +247,12 @@ function nodesToDict(nodes){
         }
     }
     return dict;
+}
+
+function trim(path){
+    let arr = []
+    for( let i in path){
+        arr = arr.concat([{node: {lat: path[i].node.lat, lon: path[i].node.lon}}])
+    }
+    return arr
 }
