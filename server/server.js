@@ -9,6 +9,7 @@ const northLat = 42.415273
 const eastLon = -72.502940
 
 // expected example /routes/42.392661/-72.533839/42.3931953/-72.5317209/max/.5
+// waits for call and returns route
 app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     // check start and end in bounds
@@ -91,6 +92,7 @@ function distChange(path){
     return [e, dist]
 }
 
+// takes latitude, longitude and nodes and returns id for nearest node 
 function nearest(lat, lon, nodes){
     let minDist = Infinity
     let id = -1
@@ -104,6 +106,8 @@ function nearest(lat, lon, nodes){
     return id
 }
 
+// takes dictionary of nodes, start node, end node, m = 'min' or 'max' and max distance
+// returns an array of checked nodes which can be traced through parents to get route
 function aStarElev(nodes, start, end, m, maxDist){
     // m either 'max' or 'min'
     // init open and close list
@@ -158,6 +162,7 @@ function aStarElev(nodes, start, end, m, maxDist){
     return close
 }
 
+// takes an array of nodes from routing algorithm and returns an array of nodes making up route
 function trace(close){
     // loop through close(aStar return) following parent nodes to create path from start to end
     let trace = [close[close.length-1]]
@@ -174,6 +179,8 @@ function trace(close){
     return trace
 }
 
+// takes dictionary of nodes, start node and end node
+// returns an array of checked nodes which can be traced through parents to get shortest route
 function aStar(nodes, start, end){
     // init open and close list
     let open = new Queue()
@@ -222,6 +229,7 @@ function aStar(nodes, start, end){
     return close
 }
 
+// takes two sets of latitude and longitude and returns the distance in meters between them
 function coordDist(lat1, lat2, lon1, lon2){
     // calculate distance
     const R = 6371000;
@@ -236,6 +244,7 @@ function coordDist(lat1, lat2, lon1, lon2){
     return R * c;
 }
 
+// takes an array of nodes and returns it as a dictionary with node id as the key
 function nodesToDict(nodes){
     dict = {}
     // loop through nodes to
@@ -253,6 +262,7 @@ function nodesToDict(nodes){
     return dict;
 }
 
+// trims a route returned from trace to just latitudes and longitudes
 function trim(path){
     let arr = []
     for( let i in path){
