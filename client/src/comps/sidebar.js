@@ -101,7 +101,7 @@ const Sidebar = (props) => {
       <label>Choose Travel Mode</label>
       <div className="input-group">
         <FontAwesomeIcon icon={faArrowsAltV} />
-        <select name="travelMode" id="travelMode">
+        <select name="travelMode" id="travelMode" onChange={(e) => {if(e.target.value === 'maximize'){props.setMinMax('max')}else{props.setMinMax('min')}}}>
           <option value="maximize">Maximize Elevation</option>
           <option value="minimize">Minimize Elevation</option>
         </select>
