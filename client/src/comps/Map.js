@@ -74,6 +74,7 @@ const Map = (props) => {
     r = <Polyline positions={coordinates} color="red" />;
   }
 
+  //adds marker to map and records longitude and lattitude of respective marker
   function AddMarker() {
     const customIcon = L.icon({
       iconUrl: customMarker,

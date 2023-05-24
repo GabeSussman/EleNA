@@ -16,6 +16,8 @@ import { useState } from "react";
 
 const Sidebar = (props) => {
 
+
+  //handleclick for custom route toggle button (dupe for testing)
   const handleClick = () => {
     props.handleClick();
     console.log("sidebar handleclick")

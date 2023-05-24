@@ -41,29 +41,29 @@ const Page = () => {
       console.log(route);
     }
 
-    //custom route button pressed
+    //custom route button pressed, allows user to place markers
     const handleClick = () => {
         setIsMarkerActive(!isMarkerActive);
         setRoute(null);
         console.log("page handleclick");
     }
 
-    //clear all button pressed
+    //clear all button pressed, refreshes page
     const clear = () => {
       window.location.reload(true);
     }
 
 
-    //center coords
+    //center coordinates for map
     const [center, setCenter] = useState([42.3898, -72.5283]);
 
+    //gets users current location
     const getCurrentLocation = () => {
     
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition((position) => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            //document.getElementById('start').value = `Lat: ${lat}, Lng: ${lng}`;
             setStartLat(lat)
             setStartLon(lng)
             setCenter([lat, lng]);
