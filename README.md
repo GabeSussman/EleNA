@@ -14,6 +14,8 @@ Build
 Running
 - In server folder run 'npm start'
 - Runs the server on local host, port 5000
+Testing
+-Run npm test
 
 Data
 - Populates MongoDB with node data from OpenStreetMaps and elevation data from OpenTopoData
