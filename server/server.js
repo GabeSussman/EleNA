@@ -36,9 +36,13 @@ app.get("/routes/:startLat/:startLon/:endLat/:endLon/:choice/:percent", (req, re
         let shortPath = trace(close)
         let shortDist = shortPath[0].dist
         // calculate min/max elevation path
-        let closeElev = aStarElev(nodes, start, end, m, shortDist * (1+per))
+        let closeElev = aStarElev(nodes, start, end, m, shortDist * (1+parseFloat(per)))
         let path = trace(closeElev)
-        res.json(trim(path))
+        if(parseFloat(per) == 0){
+            res.json(trim(shortPath))
+        } else{
+            res.json(trim(path))
+        }
 
     })
     } else {
