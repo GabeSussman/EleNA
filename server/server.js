@@ -136,7 +136,7 @@ function aStarElev(nodes, start, end, m, maxDist){
                 // calculate elevation change 
                 let el = nodes[succ[node]].elev
                 let ec = Math.abs(el - n.elev)
-                if(!open.change(succ[node], ec, m) && dist < maxDist){
+                if(!open.lower(succ[node], dist) && dist < maxDist){
                     // if not in close
                     let t = false
                     for(let i = 0; i < close.length; i++){
